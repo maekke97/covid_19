@@ -42,7 +42,7 @@ if d:
     # Split all lines into rows and columns.
     data = [[dat.strip() for dat in line.split(':')] for line in d.split('\n')]
     for line in data:
-        if line[2] == '':
+        if len(line) < 3 or line[2] == '':
             continue
         last_row = line
         
