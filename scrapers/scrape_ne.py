@@ -41,11 +41,11 @@ if d:
     d = d.replace('              ', ':')
     # Split all lines into rows and columns.
     data = [[dat.strip() for dat in line.split(':')] for line in d.split('\n')]
-
-    # Take last non-empty row.
-    last_row = data[-2]
-    # TODO(baryluk): Search for last row that has confirmed cases values.
-
+    for line in data:
+        if line[2] == '':
+            continue
+        last_row = line
+        
     COLUMNS = [
         'date',
         'ncases_per_day',
