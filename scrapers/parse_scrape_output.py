@@ -123,9 +123,10 @@ def parse_date(d):
         assert 2020 <= int(mo[3]) <= 2021
         assert 1 <= int(mo[4]) <= 23
         return f"{int(mo[3]):4d}-{months_all[mo[2]]:02d}-{int(mo[1]):02d}T{int(mo[4]):02d}:00"
-    mo = re.search(r'^(\d+) ([^\W\d_]+) (20\d\d)$', d)
+    mo = re.search(r'^(\d+)\s*([^\W\d_]+)\s*(20\d\d)$', d)
     if mo:
         # 21 mars 2020
+        # 6avril2020    # From pdftotext with NE statistics.
         assert 2020 <= int(mo[3]) <= 2021
         return f"{int(mo[3]):4d}-{months_all[mo[2]]:02d}-{int(mo[1]):02d}T"
     mo = re.search(r'^(\d+)\.(\d+) à (\d+)h(\d\d)?$', d)
@@ -218,6 +219,7 @@ try:
 
         # Ignore k or v, if v is "None"
         if v == "None":
+            print(f"WARNING: {k} is None when parsing data for {abbr}")
             warns.append(f"{k} is None")
             continue
 
@@ -282,7 +284,8 @@ try:
         violated_expectations = sm.check_expected(abbr, deaths=deaths, hospitalized=hospitalized, icu=icu, vent=vent, released=recovered)
         # For now just print warnings on stderr.
         for violated_expectation in violated_expectations:
-          print(f'WARNING: {violated_expectation}', file=sys.stderr)
+          print(f'ERROR: {violated_expectation}', file=sys.stderr)
+        assert len(violated_expectations) == 0, f'{abbr}: Found expectation violatations: {violated_expectations}'
         print("{:2} {:<16} {:>7} {:>7} OK {}{}{}".format(
             abbr,
             date,

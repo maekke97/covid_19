@@ -22,3 +22,52 @@ print('Date and time:', sc.find(r'>Neuchâtel(&#160;)* +([^<]+)<\/span>', d, gro
 # Use non-greed matching in few places.
 print('Confirmed cases:', sc.find(r'>Neuchâtel.+?Nombre de.*? confirmés (&#58;|&#160;| )*([0-9]+) pers', d, group=2))
 print('Deaths:', sc.find(r'>Neuchâtel.+?Nombre.*? décès (&#58;|&#160;| )*([0-9]+)( pers|<)', d, group=2))
+
+d = sc.pdfdownload('https://www.ne.ch/autorites/DFS/SCSP/medecin-cantonal/maladies-vaccinations/Documents/Covid-19-Statistiques/COVID19_PublicationInternet.pdf', layout=True)
+sc.timestamp()
+
+import re
+
+if d:
+    # Magic column fix (don't know if this is stable).
+    d = d.replace('avr\n   il', 'avril')
+    # d = d.replace('avr\n il', 'avril')
+    # Find the start of the table on page 5.
+    res = re.search('1mars2020', d)
+    d = d[res.span()[0]:]
+    # Replace spans of spaces by colon to indicate columns.
+    d = d.replace('2020                      ', '2020:')
+    d = d.replace('                    ', ':')
+    d = d.replace('              ', ':')
+    # Split all lines into rows and columns.
+    data = [[dat.strip() for dat in line.split(':')] for line in d.split('\n')]
+
+    # Take last non-empty row.
+    last_row = data[-2]
+    # TODO(baryluk): Search for last row that has confirmed cases values.
+
+    COLUMNS = [
+        'date',
+        'ncases_per_day',
+        'ncumul_cases',
+        'n_hospital_non_icu',
+        'n_hospital_icu',
+        'n_hospital_icu_non_tube',
+        'n_hospital_icu_tube',
+        'n_hospital_total',
+        'n_icu_covid',
+        'n_icu_non_tube',
+        'n_icu_tube',
+        'n_icu_non_covid',
+        'n_icu_total',
+        'n_deceased',
+        'ncumul_deceased'
+    ]
+
+    print('Date and time:', last_row[COLUMNS.index('date')])
+    print('Confirmed cases:', last_row[COLUMNS.index('ncumul_cases')] or 'None')
+    print('Deaths:', last_row[COLUMNS.index('ncumul_deceased')] or 'None')
+    print('Hospitalized:', last_row[COLUMNS.index('n_hospital_total')] or 'None')
+    print('ICU:', last_row[COLUMNS.index('n_icu_total')] or 'None')
+    # Intubated.
+    print('Vent:', last_row[COLUMNS.index('n_hospital_icu_tube')] or 'None')
